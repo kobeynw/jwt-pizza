@@ -12,6 +12,13 @@ async function basicInit(page: Page) {
       password: 'a',
       roles: [{ role: Role.Diner }],
     },
+    'a@jwt.com': {
+      id: '7',
+      name: 'Johnny Test',
+      email: 'a@jwt.com',
+      password: 'b',
+      roles: [{ role: Role.Admin }],
+    },
   };
 
   // Authentication Routes
@@ -55,7 +62,7 @@ async function basicInit(page: Page) {
     await route.fulfill({ json: loggedInUser });
   });
 
-  await page.route(/\/api\/user\/(\d+)?$/, async (route) => {
+  await page.route(/\/api\/user\/(.+)?$/, async (route) => {
     if (route.request().method() === 'PUT') {
       // Update authenticated user
       const updateReq = route.request().postDataJSON();
@@ -76,6 +83,32 @@ async function basicInit(page: Page) {
       validUsers[updateReq.email]["name"] = updateReq.name;
 
       await route.fulfill({ json: updateRes });
+    } else if (route.request().method() === 'GET') {
+      // List users
+      const usersRes = {
+        users: [
+          {
+            id: '3',
+            name: 'Kai Chen',
+            email: 'd@jwt.com',
+            roles: [{ role: Role.Diner }],
+          },
+          {
+            id: '5',
+            name: 'Frank',
+            email: 'f@jwt.com',
+            roles: [{ role: Role.Franchisee }],
+          },
+          {
+            id: '7',
+            name: 'Johnny Test',
+            email: 'a@jwt.com',
+            roles: [{ role: Role.Admin }],
+          },
+        ]
+      }
+
+      await route.fulfill({ json: usersRes });
     }
   });
 
@@ -118,4 +151,15 @@ test('updateUser', async ({ page }) => {await basicInit(page);
   await page.getByRole('link', { name: 'JT' }).click();
 
   await expect(page.getByRole('main')).toContainText('Johnny Test');
+});
+
+test('listUsers', async ({ page }) => {await basicInit(page);
+  // Login
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
+  await page.getByRole('textbox', { name: 'Password' }).fill('b');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  // Admin dashboard
+  await page.getByRole('link', { name: 'admin-dashboard' }).click();
 });
