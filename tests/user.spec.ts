@@ -55,6 +55,56 @@ async function basicInit(page: Page) {
     }
   });
 
+  // Franchise Routes
+  await page.route(/\/api\/franchise\?page=0&limit=3&name=([^&]*)$/, async (route) => {
+    if (route.request().method() === 'GET') {
+      // List users page 0 limit 10 any name
+      const franchiseRes = {
+        franchises: [
+            {
+                id: 55,
+                name: "5djua6pkhj",
+                admins: [
+                    {
+                        id: 1569,
+                        name: "pizza diner",
+                        email: "hmybb51vth@test.com"
+                    }
+                ],
+                stores: []
+            },
+            {
+                id: 12,
+                name: "7ylxfmt2pu",
+                admins: [
+                    {
+                        id: 1399,
+                        name: "pizza diner",
+                        email: "bajiqtw777@test.com"
+                    }
+                ],
+                stores: []
+            },
+            {
+                id: 52,
+                name: "b4jpg83nhv",
+                admins: [
+                    {
+                        id: 1560,
+                        name: "pizza diner",
+                        email: "x1okv0hwbl@test.com"
+                    }
+                ],
+                stores: []
+            }
+        ],
+        more: true
+    }
+
+      await route.fulfill({ json: franchiseRes });
+    }
+  });
+
   // User Routes
   await page.route('*/**/api/user/me', async (route) => {
     // Get authenticated user
