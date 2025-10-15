@@ -190,7 +190,9 @@ async function basicInit(page: Page) {
   await page.goto('/');
 }
 
-test('updateUser', async ({ page }) => {await basicInit(page);
+test('updateUser', async ({ page }) => {
+  await basicInit(page);
+
   // Register
   await page.getByRole('link', { name: 'Register' }).click();
   await page.getByRole('textbox', { name: 'Full name' }).fill('Kai Chen');
@@ -228,7 +230,9 @@ test('updateUser', async ({ page }) => {await basicInit(page);
   await expect(page.getByRole('main')).toContainText('Johnny Test');
 });
 
-test('listUsers', async ({ page }) => {await basicInit(page);
+test('listUsers', async ({ page }) => {
+  await basicInit(page);
+
   // Login
   await page.getByRole('link', { name: 'Login' }).click();
   await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
@@ -250,4 +254,24 @@ test('listUsers', async ({ page }) => {await basicInit(page);
   await page.getByRole('textbox', { name: 'Filter users' }).fill('Johnny');
   await page.getByRole('cell', { name: 'Johnny Submit' }).getByRole('button').click();
   await expect(page.getByRole('table').nth(1)).toContainText('Johnny Test');
+});
+
+test('deleteUser', async ({ page }) => {
+  await basicInit(page);
+
+  // Login
+  await page.getByRole('link', { name: 'Login' }).click();
+  await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
+  await page.getByRole('textbox', { name: 'Password' }).fill('b');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  // Admin dashboard
+  await page.getByRole('link', { name: 'Admin' }).click();
+
+  // Delete user
+  await page.getByRole('row', { name: 'Kai Chen d@jwt.com' }).getByRole('button').click();
+  await expect(page.getByRole('heading')).toContainText('Delete this user?');
+  await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible();
+  await page.getByRole('button', { name: 'Delete' }).click();
+  await expect(page.locator('h2')).toContainText('Mama Ricci\'s kitchen');
 });

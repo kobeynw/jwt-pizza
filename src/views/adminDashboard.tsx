@@ -47,6 +47,10 @@ export default function AdminDashboard(props: Props) {
     setUserList(await pizzaService.listUsers(userPage, 10, `*${filterUserRef.current?.value}*`));
   }
 
+  function deleteUser(userToDelete: User) {
+    navigate('/admin-dashboard/delete-user', { state: { userToDelete: userToDelete } })
+  }
+
   let response = <NotFound />;
   if (Role.isRole(props.user, Role.Admin)) {
     response = (
@@ -157,7 +161,7 @@ export default function AdminDashboard(props: Props) {
                                 {user.roles?.map((r) => r.role).join(', ')}
                               </td>
                               <td className="px-6 py-1 whitespace-nowrap text-end text-sm font-medium">
-                                <button type="button" className="px-2 py-1 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-1 border-orange-400 text-orange-400  hover:border-orange-800 hover:text-orange-800" onClick={() => console.log("Deleting User")}>
+                                <button type="button" className="px-2 py-1 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-1 border-orange-400 text-orange-400  hover:border-orange-800 hover:text-orange-800" onClick={() => deleteUser(user)}>
                                   <TrashIcon />
                                   Delete
                                 </button>
