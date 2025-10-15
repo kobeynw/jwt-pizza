@@ -343,13 +343,13 @@ test('admin dashboard', async ({ page }) => {
   // Admin dashboard
   await page.getByRole('link', { name: 'Admin' }).click();
   await expect(page.locator('h2')).toContainText('Mama Ricci\'s kitchen');
-  await expect(page.getByRole('table')).toContainText('LotaPizza');
+  await expect(page.getByRole('table').nth(0)).toContainText('LotaPizza');
 
   // Filter franchises
   await page.getByRole('textbox', { name: 'Filter franchises' }).click();
   await page.getByRole('textbox', { name: 'Filter franchises' }).fill('Lot');
-  await page.getByRole('button', { name: 'Submit' }).click();
-  await expect(page.getByRole('table')).toContainText('LotaPizza');
+  await page.getByRole('button', { name: 'Submit' }).nth(0).click();
+  await expect(page.getByRole('table').nth(0)).toContainText('LotaPizza');
   
   // Add franchise
   await page.getByRole('button', { name: 'Add Franchise' }).click();

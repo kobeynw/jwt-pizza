@@ -83,8 +83,12 @@ async function basicInit(page: Page) {
       validUsers[updateReq.email]["name"] = updateReq.name;
 
       await route.fulfill({ json: updateRes });
-    } else if (route.request().method() === 'GET') {
-      // List users
+    }
+  });
+
+  await page.route(/\/api\/user\?page=0&limit=10&name=([^&]*)$/, async (route) => {
+    if (route.request().method() === 'GET') {
+      // List users page 0 limit 10 any name
       const usersRes = {
         users: [
           {
@@ -93,22 +97,93 @@ async function basicInit(page: Page) {
             email: 'd@jwt.com',
             roles: [{ role: Role.Diner }],
           },
+        ],
+        more: true,
+      }
+
+      for (let i = 10; i < 17; i++) {
+        usersRes.users.push(
           {
-            id: '5',
-            name: 'Frank',
-            email: 'f@jwt.com',
-            roles: [{ role: Role.Franchisee }],
+            id: `${i}`,
+            name: `Kai Chen ${i}`,
+            email: `a${i}@jwt.com`,
+            roles: [{ role: Role.Diner }],
           },
+        );
+      }
+
+      await route.fulfill({ json: usersRes });
+    }
+  });
+
+  await page.route(/\/api\/user\?page=1&limit=10&name=\*Johnny\*$/, async (route) => {
+    if (route.request().method() === 'GET') {
+      // List users page 1 limit 10 name "Johnny"
+      const usersRes = {
+        users: [
           {
-            id: '7',
+            id: '1',
             name: 'Johnny Test',
             email: 'a@jwt.com',
             roles: [{ role: Role.Admin }],
           },
-        ]
+        ],
+        more: false,
+      }
+
+      for (let i = 2; i < 11; i++) {
+        usersRes.users.push(
+          {
+            id: `${i}`,
+            name: `Johnny Test ${i}`,
+            email: `a${i}@jwt.com`,
+            roles: [{ role: Role.Diner }],
+          },
+        );
       }
 
       await route.fulfill({ json: usersRes });
+    }
+  });
+
+  await page.route(/\/api\/user\?page=1&limit=10&name=\*$/, async (route) => {
+    if (route.request().method() === 'GET') {
+      // List users page 1 limit 10 any name
+      const usersRes = {
+        users: [
+          {
+            id: '11',
+            name: 'Frank',
+            email: 'f@jwt.com',
+            roles: [{ role: Role.Franchisee }],
+          },
+        ],
+        more: true,
+      }
+
+      for (let i = 12; i < 21; i++) {
+        usersRes.users.push(
+          {
+            id: `${i}`,
+            name: `Frank ${i}`,
+            email: `a${i}@jwt.com`,
+            roles: [{ role: Role.Diner }],
+          },
+        );
+      }
+
+      await route.fulfill({ json: usersRes });
+    }
+  });
+
+  await page.route('*/**/api/user/', async (route) => {
+    if (route.request().method() === 'DELETE') {
+      // Delete user
+      const deleteRes = {
+        message: "user successfully deleted",
+      };
+
+      await route.fulfill({ json: deleteRes });
     }
   });
 
@@ -161,5 +236,18 @@ test('listUsers', async ({ page }) => {await basicInit(page);
   await page.getByRole('button', { name: 'Login' }).click();
 
   // Admin dashboard
-  await page.getByRole('link', { name: 'admin-dashboard' }).click();
+  await page.getByRole('link', { name: 'Admin' }).click();
+  await expect(page.getByRole('main')).toContainText('Users');
+  await expect(page.getByRole('table').nth(1)).toContainText('Kai Chen');
+  await expect(page.getByRole('row', { name: 'Kai Chen d@jwt.com diner' }).getByRole('button')).toBeVisible();
+
+  // Paginate
+  await page.getByRole('button', { name: '»' }).nth(1).click();
+  await expect(page.getByRole('table').nth(1)).toContainText('Frank');
+
+  // Filter users
+  await page.getByRole('textbox', { name: 'Filter users' }).click();
+  await page.getByRole('textbox', { name: 'Filter users' }).fill('Johnny');
+  await page.getByRole('cell', { name: 'Johnny Submit' }).getByRole('button').click();
+  await expect(page.getByRole('table').nth(1)).toContainText('Johnny Test');
 });
